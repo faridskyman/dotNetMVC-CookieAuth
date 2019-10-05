@@ -15,7 +15,13 @@ namespace cookieauth
             app.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = "ApplicationCookie",
-                LoginPath = new PathString("/auth/login")
+                LoginPath = new PathString("/auth/login"),
+                LogoutPath = new PathString("/home/index"),
+                CookieHttpOnly = true,
+                CookieSecure = CookieSecureOption.Never, 
+                ExpireTimeSpan = TimeSpan.FromMinutes(1),
+                SlidingExpiration = true,
+                CookieName = "myAuthCookie"
             });
         }
     }
