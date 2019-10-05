@@ -1,0 +1,21 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Home > Index</h2>
+
+<p>
+    Data from CurrentUser:
+    <br />
+    Hello @CurrentUser.Name, you are from @CurrentUser.Country
+    <br />
+    Your given name @CurrentUser.GivenName
+    <br />
+    Your role @CurrentUser.Role and @CurrentUser.UserData
+
+</p>
+
+<p>
+    <a href="@Url.Action("logout", "auth")">Log Out</a>
+</p>
