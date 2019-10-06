@@ -6,9 +6,9 @@ namespace cookieauth
 {
     public abstract class AppViewPage<TModel> : WebViewPage<TModel>
     {
-        protected AppUser CurrentUser
+        protected AppUserPrincipal CurrentUser
         {
-            get { return new AppUser(this.User as ClaimsPrincipal); }
+            get { return new AppUserPrincipal(this.User as ClaimsPrincipal); }
         }
     }
 

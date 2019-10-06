@@ -10,11 +10,11 @@ namespace cookieauth.Controllers
 {
     public abstract class AppController : Controller
     {
-        public AppUser CurrentUser
+        public AppUserPrincipal CurrentUser
         {
             get
             {
-                return new AppUser(base.User as ClaimsPrincipal);
+                return new AppUserPrincipal(base.User as ClaimsPrincipal);
             }
         }
     }

@@ -1,15 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
+//using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
+using System.Threading.Tasks;
+using cookieauth.Models;
 
 namespace cookieauth.Controllers
 {
     [AllowAnonymous]
     public class AuthController : Controller
     {
+        private readonly UserManager<AppUser> userManager;
+
+        public AuthController() : this (Startup.UserManagerFactory.Invoke()) { }
+
+        public AuthController(UserManager<AppUser> userManager)
+        {
+            this.userManager = userManager;
+        }
+
         [HttpGet]
         public ActionResult Login(string returnUrl)
         {
@@ -23,12 +36,13 @@ namespace cookieauth.Controllers
 
 
         [HttpPost]
-        public ActionResult Login(LogInModel model)
+        public async Task<ActionResult> Login(LogInModel model)
         {
             if (!ModelState.IsValid)
                 return View();
 
-
+            #region old code
+            /*
             //a quick demo of auth, this will be linked to system actual auth
             if(model.Email == "farid@admin.com" && model.Password == "password")
             {
@@ -55,13 +69,42 @@ namespace cookieauth.Controllers
                 authManager.SignIn(identity);
 
                 // redirect the user agent to the resource they attempted to access.
+                return Redirect(GetRedirectUrl(model.ReturnUrl)); 
+                }
+                     
+                */
+            #endregion
+
+            // First we attempt to find a user with the provided credentials using
+            var user = await userManager.FindAsync(model.Email, model.Password);
+
+            // If the user exists we create a claims identity for the user that can 
+            // be passed to 'AuthenticationManager'. This will include any custom claims that you've stored.
+            if (user !=null)
+            {
+                // Finally we sign in the user using the cookie authentication middleware SignIn(identity).
+                await SignIn(user);
                 return Redirect(GetRedirectUrl(model.ReturnUrl));
             }
 
             //if user auth fails
             ModelState.AddModelError("", "Invalid email or password");
             return View();
-            
+        }
+
+
+
+        private async Task SignIn(AppUser user)
+        {
+            var identity = await userManager.CreateIdentityAsync(
+                user, DefaultAuthenticationTypes.ApplicationCookie);
+            GetAuthenticationManager().SignIn(identity);
+        }
+
+        private IAuthenticationManager GetAuthenticationManager()
+        {
+            var ctx = Request.GetOwinContext();
+            return ctx.Authentication;
         }
 
         /// <summary>
@@ -79,6 +122,44 @@ namespace cookieauth.Controllers
             return returnUrl;
         }
 
+
+        [HttpGet]
+        public ActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Register(RegisterModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            var user = new AppUser
+            {
+                UserName = model.Email,
+                Country = model.Country,
+                Age = model.Age
+            };
+
+            var result = await userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                await SignIn(user);
+                return RedirectToAction("index", "home");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error);
+            }
+
+            return View();
+        }
+
         /// <summary>
         /// Obtain the IAuthenticationManager instance from the OWIN context, 
         /// calling SignOut passing the authentication type (so the manager knows exactly what cookie to remove).
@@ -86,11 +167,26 @@ namespace cookieauth.Controllers
         /// <returns></returns>
         public ActionResult LogOut()
         {
-            var ctx = Request.GetOwinContext();
-            var authManager = ctx.Authentication;
 
-            authManager.SignOut("ApplicationCookie");
+            #region old code
+            //var ctx = Request.GetOwinContext();
+            //var authManager = ctx.Authentication;
+            //authManager.SignOut("ApplicationCookie");
+            #endregion
+
+            GetAuthenticationManager().SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("index", "home");
         }
+
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && userManager != null)
+            {
+                userManager.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
     }
 }

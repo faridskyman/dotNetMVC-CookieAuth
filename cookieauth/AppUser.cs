@@ -1,26 +1,26 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.AspNet.Identity.EntityFramework;
 
 namespace cookieauth
 {
-    public class AppUser : ClaimsPrincipal
+    public class AppUser : IdentityUser
     {
-        public AppUser(ClaimsPrincipal principal) : base(principal)
-        {
-        }
+        
 
-        public string Name { get { return this.FindFirst(ClaimTypes.Name).Value; } }
+        //public string Name { get; set; } 
 
-        public string Country { get { return this.FindFirst(ClaimTypes.Country).Value; } }
+        public string Country { get; set; } 
 
-        public string Email { get { return this.FindFirst(ClaimTypes.Email).Value; } }
+        public string WorkEmail { get; set; } 
 
-        public string GivenName { get { return this.FindFirst(ClaimTypes.GivenName).Value; } }
+        //public string GivenName { get; set; } 
 
-        public string Role { get { return this.FindFirst(ClaimTypes.Role).Value; } }
+        //public string Role { get; set; } 
 
-        public string UserData { get { return this.FindFirst(ClaimTypes.UserData).Value; } }
+        //public string UserData { get; set; } 
 
-        public string NameIdentifier { get { return this.FindFirst(ClaimTypes.NameIdentifier).Value; } }
+        //public string NameIdentifier { get; set; }
+
+        public int Age { get; set; }
 
     }
 }
